@@ -4,6 +4,8 @@ import { Step, Stepper, useStepper } from "../ui/stepper";
 import { Button } from "../ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/api";
 
 interface ServeyLayoutProps {
   className?: string;
@@ -11,21 +13,21 @@ interface ServeyLayoutProps {
 
 interface StepItem {
   label: string;
-  inputType: string; 
-  placeholder?: string; 
-  options?: { value: string; label: string }[]; 
+  inputType: string;
+  placeholderEntity?: string | string[];
+  options?: { value: string; label: string }[];
 }
 
 const stepContent: StepItem[] = [
   {
     label: "Email",
     inputType: "email",
-    placeholder: "Enter your email address",
+    placeholderEntity: "Enter your email address",
   },
   {
     label: "Name, Email, and Phone",
     inputType: "grouped",
-    placeholders: ["Enter your name", "Enter your phone number"],
+    placeholderEntity: ["Enter your name", "Enter your phone number"],
   },
   {
     label: "Feedback",
@@ -41,114 +43,9 @@ const stepContent: StepItem[] = [
   {
     label: "Additional Feedback",
     inputType: "textarea",
-    placeholder: "Your additional feedback...",
+    placeholderEntity: "Your additional feedback...",
   },
 ];
-
-export const ServeyLayout: React.FC<ServeyLayoutProps> = ({ className }) => {
-  const [formData, setFormData] = useState({
-    email: "",
-    name: "",
-    phone: "",
-    feedback: "",
-    additionalFeedback: "",
-  });
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { id, value } = e.target;
-    if (id === "grouped-email") {
-      setFormData({ ...formData, email: value });
-    } else if (id === "grouped-phone") {
-      setFormData({ ...formData, phone: value });
-    } else {
-      setFormData({ ...formData, [id]: value });
-    }
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const response = await fetch("http://localhost:5000", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      const result = await response.json();
-      console.log(result.message);
-    } catch (error) {
-      console.error("Error submitting survey:", error);
-    }
-  };
-
-  const steps: StepItem[] = [
-    { label: "Step 1", inputType: "email" },
-    { label: "Step 2", inputType: "grouped" },
-    { label: "Step 3", inputType: "select" },
-    { label: "Step 4", inputType: "textarea" },
-  ];
-
-  return (
-    <div className={cn("flex w-full flex-col gap-4", className)}>
-      <Stepper initialStep={0} steps={steps}>
-        {steps.map((stepProps, index) => {
-          const { label, inputType, placeholder, options } = stepContent[index];
-          return (
-            <Step key={label} {...stepProps}>
-              <div className="h-40 flex items-center justify-center my-2 border bg-secondary text-primary rounded-md">
-                <div className="grid w-full max-w-sm items-center gap-1.5">
-                  <Label htmlFor={`${inputType}-1`}>{label}</Label>
-                  {inputType === "grouped" ? (
-                    <>
-                      <Input
-                        type="text"
-                        id={`${inputType}-name`}
-                        placeholder={stepContent[index].placeholders![0]}
-                        value={formData.name}
-                        onChange={handleChange}
-                      />
-                      <Input
-                        type="tel"
-                        id={`${inputType}-phone`}
-                        placeholder={stepContent[index].placeholders![1]}
-                        value={formData.phone}
-                        onChange={handleChange}
-                      />
-                    </>
-                  ) : inputType === "select" ? (
-                    <select
-                      id={inputType}
-                      name={inputType}
-                      onChange={handleChange}
-                      className="border-gray-300 focus:ring-1 focus:ring-gray-400 focus:border-gray-400 w-full px-3 py-2 rounded-md"
-                    >
-                      {options?.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <Input
-                      type={inputType}
-                      id={inputType}
-                      placeholder={placeholder}
-                      value={formData[inputType as keyof typeof formData] as string}
-                      onChange={handleChange}
-                    />
-                  )}
-                </div>
-              </div>
-            </Step>
-          );
-        })}
-        <Footer handleSubmit={handleSubmit} />
-      </Stepper>
-    </div>
-  );
-};
 
 interface FooterProps {
   handleSubmit: () => void;
@@ -169,7 +66,7 @@ const Footer: React.FC<FooterProps> = ({ handleSubmit }) => {
     <>
       {hasCompletedAllSteps && (
         <div className="h-40 flex items-center justify-center my-2 border bg-secondary text-primary rounded-md">
-          <h1 className="text-xl">Woohoo! All steps completed! 🎉</h1>
+          <h1 className="text-xl">Woohoo! All steps completed! 🎉 </h1>
         </div>
       )}
       <div className="w-full flex justify-end gap-2">
@@ -194,5 +91,124 @@ const Footer: React.FC<FooterProps> = ({ handleSubmit }) => {
         )}
       </div>
     </>
+  );
+};
+
+export const ServeyLayout: React.FC<ServeyLayoutProps> = ({ className }) => {
+  const [formData, setFormData] = useState({
+    email: "",
+    name: "",
+    phone: "",
+    feedback: "",
+    additionalFeedback: "",
+  });
+
+  const {
+    isPending,
+    error,
+    data: categories,
+  } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => api.category.fetch(),
+  });
+  console.log(categories);
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { id, value } = e.target;
+    if (id === "grouped-email") {
+      setFormData({ ...formData, email: value });
+    } else if (id === "grouped-phone") {
+      setFormData({ ...formData, phone: value });
+    } else {
+      setFormData({ ...formData, [id]: value });
+    }
+  };
+
+  // const handleSubmit = async () => {
+  //   try {
+  //     const response = await fetch("http://localhost:5000", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(formData),
+  //     });
+  //     const result = await response.json();
+  //     console.log(result.message);
+  //   } catch (error) {
+  //     console.error("Error submitting survey:", error);
+  //   }
+  // };
+
+  const steps: StepItem[] = [
+    { label: "Step 1", inputType: "email" },
+    { label: "Step 2", inputType: "grouped" },
+    { label: "Step 3", inputType: "select" },
+    { label: "Step 4", inputType: "textarea" },
+  ];
+
+  return (
+    <div className={cn("flex w-full flex-col gap-4", className)}>
+      <Stepper initialStep={0} steps={steps}>
+        {steps.map((stepProps, index) => {
+          const { label, inputType, placeholderEntity, options } =
+            stepContent[index];
+          return (
+            <Step key={label} {...stepProps}>
+              <div className="h-40 flex items-center justify-center my-2 border bg-secondary text-primary rounded-md">
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Label htmlFor={`${inputType}-1`}>{label}</Label>
+                  {inputType === "grouped" ? (
+                    <>
+                      <Input
+                        type="text"
+                        id={`${inputType}-name`}
+                        placeholder={stepContent[index]?.placeholderEntity?.[0]}
+                        value={formData.name}
+                        onChange={handleChange}
+                      />
+                      <Input
+                        type="tel"
+                        id={`${inputType}-phone`}
+                        placeholder={stepContent[index]?.placeholderEntity?.[1]}
+                        value={formData.phone}
+                        onChange={handleChange}
+                      />
+                    </>
+                  ) : inputType === "select" ? (
+                    <select
+                      id={inputType}
+                      name={inputType}
+                      onChange={handleChange}
+                      className="border-gray-300 focus:ring-1 focus:ring-gray-400 focus:border-gray-400 w-full px-3 py-2 rounded-md"
+                    >
+                      {options?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      type={inputType}
+                      id={inputType}
+                      placeholder={placeholderEntity}
+                      value={
+                        formData[inputType as keyof typeof formData] as string
+                      }
+                      onChange={handleChange}
+                    />
+                  )}
+                </div>
+              </div>
+            </Step>
+          );
+        })}
+        <Footer />
+      </Stepper>
+    </div>
   );
 };
