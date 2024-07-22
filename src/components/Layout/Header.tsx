@@ -21,7 +21,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ className, menuItems }) => {
   const pathname = window.location.pathname;
-  console.log(pathname);
   return (
     <header
       className={cn(

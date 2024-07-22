@@ -103,15 +103,7 @@ export const ServeyLayout: React.FC<ServeyLayoutProps> = ({ className }) => {
     additionalFeedback: "",
   });
 
-  const {
-    isPending,
-    error,
-    data: categories,
-  } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => api.category.fetch(),
-  });
-  console.log(categories);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
