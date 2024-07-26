@@ -14,13 +14,15 @@ import { Button } from "../ui/button";
 import { ResponsiveSidebar } from "./ResponsiveSidebar";
 import { MenuItem } from "./MenuItems";
 import { ModeToggle } from "../Common";
+import { Link, useLocation } from "react-router-dom";
 interface HeaderProps {
   className?: string;
   menuItems?: MenuItem[];
 }
 
 export const Header: React.FC<HeaderProps> = ({ className, menuItems }) => {
-  const pathname = window.location.pathname;
+  const location = useLocation();
+
   return (
     <header
       className={cn(
@@ -28,7 +30,7 @@ export const Header: React.FC<HeaderProps> = ({ className, menuItems }) => {
         className
       )}
     >
-      <ResponsiveSidebar menuItems={menuItems} pathname={pathname} />
+      <ResponsiveSidebar menuItems={menuItems} pathname={location.pathname} />
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -38,30 +40,30 @@ export const Header: React.FC<HeaderProps> = ({ className, menuItems }) => {
         </SheetTrigger>
         <SheetContent side="left">
           <nav className="grid gap-6 text-lg font-medium">
-            <a
-              href="#"
+            <Link
+              to="/"
               className="flex items-center gap-2 text-lg font-semibold"
             >
               <Package2 className="h-6 w-6" />
               <span className="sr-only">Acme Inc</span>
-            </a>
+            </Link>
             {menuItems?.map((item) => (
-              <a
+              <Link
                 key={item.label}
-                href={item.href}
+                to={item.href}
                 className={cn(
                   "text-muted-foreground hover:text-foreground",
-                  pathname === item.href && "text-foreground"
+                  location.pathname === item.href && "text-foreground"
                 )}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
         </SheetContent>
       </Sheet>
       <div className="flex w-full gap-4 md:ml-auto md:gap-2 lg:gap-4 justify-end">
-      <ModeToggle />
+        <ModeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">

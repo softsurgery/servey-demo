@@ -11,15 +11,21 @@ function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <div>Hello world!</div>,
-    },
-    {
-      path: "/categories",
-      element: <CategoriesHome />,
-    },
-    {
-      path: "/settings",
-      element: <SettingsHome />,
+      element: <Layout />,
+      children: [
+        {
+          path: "/",
+          element: <div>Hello world!</div>,
+        },
+        {
+          path: "/categories/",
+          element: <CategoriesHome />,
+        },
+        {
+          path: "/settings/",
+          element: <SettingsHome />,
+        },
+      ],
     },
   ]);
 
@@ -27,9 +33,7 @@ function App() {
     <div>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <Layout>
-            <RouterProvider router={router}/>
-          </Layout>
+          <RouterProvider router={router} />
         </ThemeProvider>
       </QueryClientProvider>
     </div>
