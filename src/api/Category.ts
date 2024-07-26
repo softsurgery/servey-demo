@@ -1,5 +1,8 @@
 import { axios } from "./axios";
 import { Category } from "./types";
+import { PaginatedResponse } from "./types/PaginatedResponse";
+
+export interface PaginatedCategories extends PaginatedResponse<Category> {}
 
 export interface CreateCategoryDto
   extends Pick<Category, "name" | "description"> {}
@@ -7,8 +10,12 @@ export interface CreateCategoryDto
 export interface UpdateCategoryDto
   extends Omit<Category, "created_at" | "updated_at"> {}
 
-const fetch = async (): Promise<Category[]> => {
-  const response = await axios.get<Category[]>("api/categories/");
+const fetch = async (
+  page: number = 1,
+  pageSize: number = 5,
+  search:string=""
+): Promise<PaginatedCategories> => {
+  const response = await axios.get<PaginatedCategories>(`api/categories/?page=${page}&page_size=${pageSize}&search=${search}`);
   return response.data;
 };
 

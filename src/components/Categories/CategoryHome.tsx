@@ -38,14 +38,25 @@ export const CategoriesHome: React.FC<CategoriesHomeProps> = ({
   const [selectedCategory, setSelectedCatgeory] =
     React.useState<Category | null>(null);
 
+  const [searchTerm, setSearchTerm] = React.useState<string>("");
+  const [page, setPage] = React.useState<number>(1);
+  const [pageSize, setPageSize] = React.useState<number>(5);
+
   const {
-    data: categories,
+    data: categoriesResponse,
     isPending: isFetchingPending,
     refetch: refetchCategories,
   } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => api.category.fetch(),
+    queryKey: ["categories", page, pageSize, searchTerm],
+    queryFn: () => api.category.fetch(page, pageSize, searchTerm),
+
   });
+
+  const categories = React.useMemo(() => {
+    const categories = categoriesResponse?.results;
+    if (!categories) return [];
+    else return categories;
+  }, [categoriesResponse]);
 
   const { mutate: createCategory, isPending: isCreatePending } = useMutation({
     mutationFn: (createCategoryDto: CreateCategoryDto) =>
@@ -128,7 +139,7 @@ export const CategoriesHome: React.FC<CategoriesHomeProps> = ({
   };
 
   const loading =
-    isFetchingPending || isCreatePending || isUpdatePending || isDeletePending;
+     isCreatePending || isUpdatePending || isDeletePending;
   if (loading) return <Spinner />;
   return (
     <div className={cn("flex flex-col gap-4 w-full p-10", className)}>
@@ -149,15 +160,17 @@ export const CategoriesHome: React.FC<CategoriesHomeProps> = ({
       </Card>
       <Card>
         <CardHeader></CardHeader>
-        <CardContent>      
-            <div className="relative">
-              <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search category..."
-                className="pl-8 mb-6 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-              />
-            </div>
+        <CardContent>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search category..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 mb-6 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+            />
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
