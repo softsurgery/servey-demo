@@ -23,6 +23,7 @@ import { CategoryForm } from "./CategoryForm";
 import { useToast } from "../ui/use-toast";
 import { useCategoryManager } from "@/hooks/functions/useCategoryManager";
 import { Input } from "../ui/input";
+import { Search } from "lucide-react";
 
 interface CategoriesHomeProps {
   className?: string;
@@ -148,10 +149,15 @@ export const CategoriesHome: React.FC<CategoriesHomeProps> = ({
       </Card>
       <Card>
         <CardHeader></CardHeader>
-        <CardContent>
-          <div className="my-2">
-            <Input/>
-          </div>
+        <CardContent>      
+            <div className="relative">
+              <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search category..."
+                className="pl-8 mb-6 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+              />
+            </div>
           <Table>
             <TableHeader>
               <TableRow>
